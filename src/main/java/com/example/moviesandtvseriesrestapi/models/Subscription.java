@@ -20,7 +20,7 @@ public class Subscription {
     private LocalDate paymentDueDate;
 
     @Column(name = "remaining_content", nullable = false)
-    private Integer remainingContent;
+    private Integer remainingContent = 0;
 
     @Column(name = "reminder_sent", nullable = false)
     private boolean reminderSent = false;

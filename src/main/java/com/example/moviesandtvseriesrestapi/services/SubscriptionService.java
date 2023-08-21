@@ -1,10 +1,7 @@
 package com.example.moviesandtvseriesrestapi.services;
 
 import com.example.moviesandtvseriesrestapi.dtos.*;
-import com.example.moviesandtvseriesrestapi.exceptions.CategoryNotFoundException;
-import com.example.moviesandtvseriesrestapi.exceptions.CustomException;
-import com.example.moviesandtvseriesrestapi.exceptions.SubscriptionNotFoundException;
-import com.example.moviesandtvseriesrestapi.exceptions.UserNotFoundException;
+import com.example.moviesandtvseriesrestapi.exceptions.*;
 import com.example.moviesandtvseriesrestapi.models.Category;
 import com.example.moviesandtvseriesrestapi.models.ContentView;
 import com.example.moviesandtvseriesrestapi.models.Subscription;
@@ -13,6 +10,7 @@ import com.example.moviesandtvseriesrestapi.repositories.CategoryRepository;
 import com.example.moviesandtvseriesrestapi.repositories.ContentViewRepository;
 import com.example.moviesandtvseriesrestapi.repositories.SubscriptionRepository;
 import com.example.moviesandtvseriesrestapi.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -42,19 +40,24 @@ public class SubscriptionService {
         this.emailService = emailService;
     }
 
-    public Subscription subscribeToCategory(String userEmail, String categoryName) {
-        User user = userRepository.findByEmail(userEmail).orElseThrow(() -> new UserNotFoundException("User not found."));
-        Category category = categoryRepository.findByName(categoryName).orElseThrow(() -> new CategoryNotFoundException("Category not found."));
+    @Transactional
+    public Subscription subscribeToCategory(String email, Long categoryId) {
+        User user = userRepository.findByEmail(email).orElseThrow(() ->
+                new UserNotFoundException("User not found."));
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new CategoryNotFoundException("Category not found."));
 
         if (subscriptionRepository.findByUserAndCategory(user, category).isPresent()) {
-            throw new SubscriptionNotFoundException("You are already subscribed to this category.");
+            throw new SubscriptionAlreadyExistsException("You are already subscribed to this category.");
         }
+
+        Integer initialRemainingContent = category.getAvailableContent();
 
         Subscription subscription = new Subscription();
         subscription.setUser(user);
         subscription.setCategory(category);
         subscription.setStartDate(LocalDate.now());
-        subscription.setPaymentDueDate(LocalDate.now().plusMonths(1));
+        subscription.setRemainingContent(initialRemainingContent);
 
         return subscriptionRepository.save(subscription);
     }
@@ -134,6 +137,7 @@ public class SubscriptionService {
         }
     }
 
+    @Transactional
     public SubscriptionResponseDto shareSubscription(ShareSubscriptionRequestDto request) {
 
         User sharer = userRepository.findByEmail(request.getEmail())
@@ -156,6 +160,8 @@ public class SubscriptionService {
         recipientSubscription.setUser(recipient);
         recipientSubscription.setCategory(category);
         recipientSubscription.setRemainingContent(sharerSubscription.getRemainingContent());
+        LocalDate currentDate = LocalDate.now();
+        recipientSubscription.setStartDate(currentDate);
         subscriptionRepository.save(recipientSubscription);
 
         return new SubscriptionResponseDto("Login successful", "Subscription successfully shared!");

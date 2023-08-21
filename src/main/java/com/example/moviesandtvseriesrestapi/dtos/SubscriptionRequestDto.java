@@ -3,11 +3,11 @@ package com.example.moviesandtvseriesrestapi.dtos;
 public class SubscriptionRequestDto {
 
     private String email;
-    private String availableCategory;
+    private Long availableCategory;
 
     public SubscriptionRequestDto() {}
 
-    public SubscriptionRequestDto(String email, String availableCategory) {
+    public SubscriptionRequestDto(String email, Long availableCategory) {
         this.email = email;
         this.availableCategory = availableCategory;
     }
@@ -20,11 +20,11 @@ public class SubscriptionRequestDto {
         this.email = email;
     }
 
-    public String getAvailableCategory() {
+    public Long getAvailableCategory() {
         return availableCategory;
     }
 
-    public void setAvailableCategory(String availableCategory) {
+    public void setAvailableCategory(Long availableCategory) {
         this.availableCategory = availableCategory;
     }
 
