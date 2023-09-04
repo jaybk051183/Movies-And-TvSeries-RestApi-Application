@@ -6,8 +6,8 @@ INSERT INTO users (username, password, email, enabled) VALUES ('kbhaggoe1535', '
 INSERT INTO users (username, password, email, enabled) VALUES ('mhuizinga1353', '$2a$12$EXmJf5dYI7ZQFQe/jUbtiOk/Xp15GEgPMSiXEHpuCNQDLKdpKIfEK', 'm.huizinga@outlook.nl', TRUE);
 INSERT INTO users (username, password, email, enabled) VALUES ('pbakker4542', '$2a$12$bH6AJvdfMwJyTPJP5SoneeDOYzOgtqGa65/eX2qTiMOmj0hu/jebO', 'p.bakker@outlook.nl', TRUE);
 
-INSERT INTO subscriptions(id, user_id, category_id, start_date, remaining_content, is_active, reminder_sent)
-VALUES(1, 'kbhaggoe1535', 3, '2018-01-01', 5, TRUE, FALSE);
+INSERT INTO subscriptions(id, user_id, category_id, start_date, payment_due_date, remaining_content, is_active, reminder_sent)
+VALUES(1, 'kbhaggoe1535', 3, '2018-01-01', '2023-09-02', 5, TRUE, FALSE);
 
 INSERT INTO authorities (username, authority) VALUES ('kbhaggoe1535', 'ROLE_USER');
 INSERT INTO authorities (username, authority) VALUES ('mhuizinga1353', 'ROLE_USER');

@@ -4,12 +4,14 @@ public class SubscriptionRequestDto {
 
     private String email;
     private Long availableCategory;
+    private String categoryName;
 
     public SubscriptionRequestDto() {}
 
-    public SubscriptionRequestDto(String email, Long availableCategory) {
+    public SubscriptionRequestDto(String email, Long availableCategory, String categoryName) {
         this.email = email;
         this.availableCategory = availableCategory;
+        this.categoryName = categoryName;
     }
 
     public String getEmail() {
@@ -26,6 +28,14 @@ public class SubscriptionRequestDto {
 
     public void setAvailableCategory(Long availableCategory) {
         this.availableCategory = availableCategory;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
     }
 
     @Override

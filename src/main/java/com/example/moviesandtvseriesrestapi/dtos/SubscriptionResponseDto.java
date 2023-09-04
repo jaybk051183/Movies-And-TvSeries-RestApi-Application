@@ -1,11 +1,22 @@
 package com.example.moviesandtvseriesrestapi.dtos;
 
+import java.time.LocalDate;
+
 public class SubscriptionResponseDto {
 
     private String status;
     private String message;
+    private LocalDate startDate;
+    private LocalDate paymentDueDate;
 
     public SubscriptionResponseDto() {}
+
+    public SubscriptionResponseDto(String status, String message, LocalDate startDate, LocalDate paymentDueDate) {
+        this.status = status;
+        this.message = message;
+        this.startDate = startDate;
+        this.paymentDueDate = paymentDueDate;
+    }
 
     public SubscriptionResponseDto(String status, String message) {
         this.status = status;
@@ -26,6 +37,22 @@ public class SubscriptionResponseDto {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalDate getPaymentDueDate() {
+        return paymentDueDate;
+    }
+
+    public void setPaymentDueDate(LocalDate paymentDueDate) {
+        this.paymentDueDate = paymentDueDate;
     }
 
     @Override
