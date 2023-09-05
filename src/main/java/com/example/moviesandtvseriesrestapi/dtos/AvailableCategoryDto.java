@@ -2,7 +2,9 @@ package com.example.moviesandtvseriesrestapi.dtos;
 
 public class AvailableCategoryDto {
     private String name;
+
     private Integer availableContent;
+
     private Double price;
 
     public String getName() {

@@ -1,7 +1,9 @@
 package com.example.moviesandtvseriesrestapi.controllers;
 
 import com.example.moviesandtvseriesrestapi.dtos.*;
-import com.example.moviesandtvseriesrestapi.exceptions.CustomException;
+import com.example.moviesandtvseriesrestapi.exceptions.CategoryNotFoundException;
+import com.example.moviesandtvseriesrestapi.exceptions.SubscriptionNotFoundException;
+import com.example.moviesandtvseriesrestapi.exceptions.UserNotFoundException;
 import com.example.moviesandtvseriesrestapi.models.Category;
 import com.example.moviesandtvseriesrestapi.models.Subscription;
 import com.example.moviesandtvseriesrestapi.models.User;
@@ -25,60 +27,18 @@ public class SubscriptionController {
 
     private UserService userService;
 
-    //Constructor-based dependency injection:
     public SubscriptionController(SubscriptionService subscriptionService, CategoryService categoryService, UserService userService) {
         this.subscriptionService = subscriptionService;
         this.categoryService = categoryService;
         this.userService = userService;
     }
 
-
-    @GetMapping("/payment-due-date")
-    public ResponseEntity<SubscriptionResponseDto> checkPaymentDueDate(@RequestParam String email, @RequestParam String categoryName) {
-        User user = userService.findByEmail(email)
-                .orElseThrow(() -> new CustomException("User not found."));
-        Category category = categoryService.findByName(categoryName)
-                .orElseThrow(() -> new CustomException("Category not found."));
-
-        Subscription subscription = subscriptionService.findByUserAndCategory(user, category)
-                .orElseThrow(() -> new CustomException("Subscription not found."));
-
-        SubscriptionResponseDto response = new SubscriptionResponseDto();
-        response.setStatus("Success");
-        response.setMessage("Subscription payment due date retrieved successfully!");
-        response.setStartDate(subscription.getStartDate());
-        response.setPaymentDueDate(subscription.getPaymentDueDate());
-
-        return ResponseEntity.ok(response);
-    }
-
-
-    //Haal zowel de beschikbare categorieën als de categorieën waarop een specifieke gebruiker geabonneerd is.
-    //Door ResponseEntity<?> (generics) te gebruiken, kan de controller-methode verschillende types van objecten retourneren.
-    @GetMapping
-    public ResponseEntity<?> getCategoriesForUser(@RequestParam String username) {
-        // Haal alle beschikbare categorieën op via de subscriptionService.
-        List<AvailableCategoryDto> availableCategories = subscriptionService.getAllAvailableCategories();
-        // Haal de categorieën op waarop de gebruiker (geïdentificeerd door username) is geabonneerd.
-        List<SubscribedCategoryDto> subscribedCategories = subscriptionService.getSubscribedCategoriesForUser(username);
-
-        // Maak een nieuwe map (=collectie met key/value pairs) om de opgehaalde categorieën op te slaan.
-        Map<String, Object> response = new HashMap<>();
-        //VOEG beschikbare Categorieën TOE AAN response ONDER SLEUTEL "availableCategories"
-        response.put("availableCategories", availableCategories);
-        //VOEG geabonneerdeCategorieën TOE AAN response ONDER SLEUTEL "subscribedCategories"
-        response.put("subscribedCategories", subscribedCategories);
-
-        return ResponseEntity.ok(response);
-    }
-
-
     @PostMapping("/create")
     public ResponseEntity<SubscriptionResponseDto> createSubscription(@RequestBody SubscriptionRequestDto request) {
         User user = userService.findByEmail(request.getEmail())
-                .orElseThrow(() -> new CustomException("User not found."));
+                .orElseThrow(() -> new UserNotFoundException("User not found."));
         Category category = categoryService.findByName(request.getCategoryName())
-                .orElseThrow(() -> new CustomException("Category not found."));
+                .orElseThrow(() -> new CategoryNotFoundException("Category not found."));
 
         Subscription subscription = subscriptionService.createSubscription(user, category);
 
@@ -91,6 +51,58 @@ public class SubscriptionController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping
+    public ResponseEntity<?> getCategoriesForUser(@RequestParam String username) {
+
+        List<AvailableCategoryDto> availableCategories = subscriptionService.getAllAvailableCategories();
+        List<SubscribedCategoryDto> subscribedCategories = subscriptionService.getSubscribedCategoriesForUser(username);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("availableCategories", availableCategories);
+        response.put("subscribedCategories", subscribedCategories);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/mark-as-viewed")
+    public ResponseEntity<String> markAsViewed(@RequestParam String email, @RequestParam String categoryName) {
+        User user = userService.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found."));
+        Category category = categoryService.findByName(categoryName)
+                .orElseThrow(() -> new CategoryNotFoundException("Category not found."));
+        subscriptionService.contentViewed(user, category);
+        return ResponseEntity.ok("Content marked as viewed successfully.");
+    }
+
+    @GetMapping("/payment-due-date")
+    public ResponseEntity<SubscriptionResponseDto> checkPaymentDueDate(@RequestParam String email, @RequestParam String categoryName) {
+        User user = userService.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found."));
+        Category category = categoryService.findByName(categoryName)
+                .orElseThrow(() -> new CategoryNotFoundException("Category not found."));
+
+        Subscription subscription = subscriptionService.findByUserAndCategory(user, category)
+                .orElseThrow(() -> new SubscriptionNotFoundException("Subscription not found."));
+
+        SubscriptionResponseDto response = new SubscriptionResponseDto();
+        response.setStatus("Success");
+        response.setMessage("Subscription payment due date retrieved successfully!");
+        response.setStartDate(subscription.getStartDate());
+        response.setPaymentDueDate(subscription.getPaymentDueDate());
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/remaining-content")
+    public ResponseEntity<Integer> getRemainingContent(@RequestParam String email, @RequestParam String categoryName) {
+        User user = userService.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found."));
+        Category category = categoryService.findByName(categoryName)
+                .orElseThrow(() -> new CategoryNotFoundException("Category not found."));
+        Subscription subscription = subscriptionService.findByUserAndCategory(user, category)
+                .orElseThrow(() -> new SubscriptionNotFoundException("Subscription not found."));
+        return ResponseEntity.ok(subscription.getRemainingContent());
+    }
 
     @PostMapping("/share")
     public ResponseEntity<SubscriptionResponseDto> shareSubscription(@RequestBody ShareSubscriptionRequestDto request) {

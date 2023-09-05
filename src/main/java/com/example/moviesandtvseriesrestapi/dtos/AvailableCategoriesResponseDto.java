@@ -5,6 +5,7 @@ import java.util.List;
 public class AvailableCategoriesResponseDto {
 
     private List<CategoryDto> availableCategories;
+
     private List<SubscriptionDto> subscribedCategories;
 
     public AvailableCategoriesResponseDto() {}

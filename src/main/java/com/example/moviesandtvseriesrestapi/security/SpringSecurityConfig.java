@@ -13,14 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-//De klasse SpringSecurityConfig definieert de beveiligingsconfiguratie voor de Spring Boot applicatie.
-// authenticationManager bepaalt hoe gebruikers geauthenticeerd worden, met name welke service gebruikt wordt om gebruikers te laden en welke encoder wordt gebruikt voor wachtwoorden.
-  // In de methode filter, worden de beveiligingsregels voor verschillende endpoints gedefinieerd. Sommige paden zijn open voor iedereen, sommige vereisen dat de gebruiker de rol 'ADMIN' of 'USER' heeft, en sommige vereisen gewoon dat de gebruiker is geauthenticeerd.
- // CSRF-bescherming en HTTP Basic authenticatie zijn uitgeschakeld.
- // CORS is ingeschakeld.
-// De applicatie is ingesteld om stateless sessies te gebruiken, wat betekent dat het geen sessie-informatie opslaat tussen verzoeken. Dit is typisch voor JWT-gebaseerde authenticatie.
-   // Het jwtRequestFilter wordt toegevoegd aan de filterketen. Dit filter controleert elk binnenkomend verzoek op de aanwezigheid van een geldige JWT.
-
 @Configuration
 @EnableWebSecurity
 public class SpringSecurityConfig {
@@ -35,7 +27,6 @@ public class SpringSecurityConfig {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // Configuratie van de AuthenticationManager. Deze bepaalt hoe gebruikers geverifieerd worden.
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         return http.getSharedObject(AuthenticationManagerBuilder.class)
@@ -45,7 +36,6 @@ public class SpringSecurityConfig {
                 .build();
     }
 
-    // Configuratie van de SecurityFilterChain. Dit bepaalt hoe binnenkomende verzoeken worden gecontroleerd.
     @Bean
     protected SecurityFilterChain filter(HttpSecurity http) throws Exception {
         http
@@ -63,9 +53,11 @@ public class SpringSecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/v1/categories/subscribe").hasRole("USER")
                 .requestMatchers(HttpMethod.POST, "/api/v1/categories/view").hasRole("USER")
                 .requestMatchers(HttpMethod.GET, "/api/v1/subscriptions").hasRole("USER")
+                .requestMatchers(HttpMethod.GET, "/api/v1/subscriptions/remaining-content/**").hasRole("USER")
                 .requestMatchers(HttpMethod.GET, "/api/v1/subscriptions/payment-due-date/**").hasRole("USER")
                 .requestMatchers(HttpMethod.POST, "/api/v1/subscriptions/share").hasRole("USER")
                 .requestMatchers(HttpMethod.POST, "/api/v1/subscriptions/create").hasRole("USER")
+                .requestMatchers(HttpMethod.POST, "/api/v1/subscriptions/mark-as-viewed").hasRole("USER")
                 .requestMatchers("/authenticated").authenticated()
                 .requestMatchers("/authenticate").permitAll()
                 .anyRequest().denyAll()

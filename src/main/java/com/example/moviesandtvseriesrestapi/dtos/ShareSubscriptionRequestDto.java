@@ -3,7 +3,9 @@ package com.example.moviesandtvseriesrestapi.dtos;
 public class ShareSubscriptionRequestDto {
 
     private String email;
+
     private String customer;
+
     private String subscribedCategory;
 
     public ShareSubscriptionRequestDto() {}

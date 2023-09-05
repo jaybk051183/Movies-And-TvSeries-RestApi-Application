@@ -5,8 +5,11 @@ import java.time.LocalDate;
 public class SubscriptionResponseDto {
 
     private String status;
+
     private String message;
+
     private LocalDate startDate;
+
     private LocalDate paymentDueDate;
 
     public SubscriptionResponseDto() {}

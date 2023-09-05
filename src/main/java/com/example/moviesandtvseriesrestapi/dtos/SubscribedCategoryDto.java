@@ -4,8 +4,11 @@ import java.time.LocalDate;
 
 public class SubscribedCategoryDto {
     private String name;
+
     private Integer remainingContent;
+
     private Double price;
+
     private LocalDate startDate;
 
     public String getName() {

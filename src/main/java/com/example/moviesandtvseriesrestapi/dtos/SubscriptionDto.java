@@ -4,10 +4,15 @@ import java.time.LocalDate;
 
 public class SubscriptionDto {
     private Long categoryId;
+
     private String categoryName;
+
     private LocalDate startDate;
+
     private Integer remainingContent;
+
     private Integer currentMonthContentCount;
+
     private LocalDate lastAccessedDate;
 
     public Long getCategoryId() {

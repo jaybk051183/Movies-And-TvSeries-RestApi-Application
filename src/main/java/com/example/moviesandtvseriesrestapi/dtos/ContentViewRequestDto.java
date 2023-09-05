@@ -3,6 +3,7 @@ package com.example.moviesandtvseriesrestapi.dtos;
 public class ContentViewRequestDto {
 
     private String email;
+
     private String categoryName;
 
     public String getEmail() {

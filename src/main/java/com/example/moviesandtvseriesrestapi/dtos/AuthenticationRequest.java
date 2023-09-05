@@ -3,6 +3,7 @@ package com.example.moviesandtvseriesrestapi.dtos;
 public class AuthenticationRequest {
 
     private String username;
+
     private String password;
 
     public AuthenticationRequest() {

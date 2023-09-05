@@ -47,134 +47,98 @@ public class SubscriptionService {
     public Subscription createSubscription(User user, Category category) {
         Subscription subscription = new Subscription();
         subscription.setUser(user);
-        subscription.setCategory(category);
+        subscription.setRemainingContent(category.getAvailableContent());
 
         LocalDate currentDate = LocalDate.now();
         subscription.setStartDate(currentDate);
-        subscription.setPaymentDueDate(currentDate.plusMonths(1)); // Voeg een maand toe voor de gratis periode
+        subscription.setPaymentDueDate(currentDate.plusMonths(1));
 
         return subscriptionRepository.save(subscription);
     }
 
-
-    // Begin een transactie (@Transactional: alle databasebewerkingen binnen de functie maken deel uit van een enkele transactie. Als er ergens een fout optreedt, worden alle databasebewerkingen teruggedraaid.)
     @Transactional
     public Subscription subscribeToCategory(String email, Long categoryId) {
-        //VIND een User OBJECT met behulp van de gegeven email uit de userRepository:
+
         User user = userRepository.findByEmail(email).orElseThrow(() ->
                 new UserNotFoundException("User not found."));
-        //VIND een Category OBJECT met behulp van de gegeven categoryId uit de categoryRepository:
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new CategoryNotFoundException("Category not found."));
-       //CONTROLEER of er al een abonnement bestaat voor de gevonden User en Category:
+
         if (subscriptionRepository.findByUserAndCategory(user, category).isPresent()) {
             throw new SubscriptionAlreadyExistsException("You are already subscribed to this category.");
         }
 
-        //HAAL de beschikbare inhoud op voor de gevonden categorie en sla dit op als initialRemainingContent:
         Integer initialRemainingContent = category.getAvailableContent();
 
-        //CREEER een nieuw Subscription OBJECT:
-         //- STEL de user in als de gevonden user.
-         // - STEL de category in als de gevonden category.
-         // - STEL de startdatum in als de huidige datum.
-         // - STEL de overgebleven inhoud in als initialRemainingContent.
         Subscription subscription = new Subscription();
         subscription.setUser(user);
         subscription.setCategory(category);
         subscription.setStartDate(LocalDate.now());
+        subscription.setPaymentDueDate(LocalDate.now().plusMonths(1));
         subscription.setRemainingContent(initialRemainingContent);
 
-        //SLA het Subscription OBJECT op in de subscriptionRepository en RETOURNEER het opgeslagen Subscription OBJECT:
         return subscriptionRepository.save(subscription);
     }
 
-    //VRAAG de subscriptionRepository OM alle Subscription OBJECTEN te vinden geassocieerd met de gegeven user
     public List<SubscriptionDto> findByUser(User user) {
-        //VOOR elk gevonden Subscription OBJECT: CONVERTEER het Subscription OBJECT naar een SubscriptionDto OBJECT met behulp van de convertToDto functie:
         return subscriptionRepository.findByUser(user).stream()
                 .map(this::convertToDto)
-                //VERZAMEL alle geconverteerde SubscriptionDto OBJECTEN in een lijst:
                 .collect(Collectors.toList());
     }
 
-
     public List<AvailableCategoryDto> getAllAvailableCategories() {
-        //HAAL alle Category OBJECTEN uit de categoryRepository en sla ze op in een lijst genaamd categories:
+
         List<Category> categories = categoryRepository.findAll();
 
-        //TRANSFORMEER elke Category in de categories lijst naar een AvailableCategoryDto door het te 'mappen' met behulp van de functie convertToAvailableCategoryDto:
         return categories.stream()
                 .map(this::convertToAvailableCategoryDto)
                 .collect(Collectors.toList());
     }
 
-
     public List<SubscribedCategoryDto> getSubscribedCategoriesForUser(String username) {
-        //Zoek de User OBJECT via de userRepository met het gegeven username (e-mailadres) als zoekcriterium.
+
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found."));
-        //HAAL alle Subscription OBJECTEN op voor de gevonden user vanuit subscriptionRepository en sla deze op in een lijst genaamd subscription
         List<Subscription> subscriptions = subscriptionRepository.findByUser(user);
 
-        //TRANSFORMEER elke Subscription in de subscriptions lijst naar een SubscribedCategoryDto door het te 'mappen' met behulp van de functie convertToSubscribedCategoryDto
         return subscriptions.stream()
                 .map(this::convertToSubscribedCategoryDto)
                 .collect(Collectors.toList());
     }
 
-
     public void contentViewed(User user, Category category) {
-        //Vindt de Subscription OBJECT voor de gegeven user en category via subscriptionRepository.
+
         Subscription subscription = subscriptionRepository.findByUserAndCategory(user, category)
                 .orElseThrow(() -> new SubscriptionNotFoundException("No subscription found for user and category."));
 
-        //CONTROLEER of de remainingContent van de gevonden Subscription groter is dan 0:
         if(subscription.getRemainingContent() > 0) {
-            //VERMINDER de waarde van remainingContent met 1 voor de Subscription
             subscription.setRemainingContent(subscription.getRemainingContent() - 1);
-            //SLA de bijgewerkte Subscription op in de subscriptionRepository:
             subscriptionRepository.save(subscription);
+
         } else {
             throw new RuntimeException("No remaining content for this subscription.");
         }
 
-        //MAAK een nieuw ContentView OBJECT:
-       // - STEL de Subscription van het ContentView OBJECT in op de gevonden Subscription.
-       // - STEL de viewDate van het ContentView OBJECT in op de huidige datum.
-       // - SLA het nieuwe ContentView OBJECT op in contentViewRepository.
         ContentView contentView = new ContentView();
         contentView.setSubscription(subscription);
         contentView.setViewDate(LocalDate.now());
+
         contentViewRepository.save(contentView);
     }
 
-
-    //Functionaliteit: scheduler om de betalingsdata bij te houden:
-    //ELKE DAG om middernacht (aangegeven door de "cron" expressie "0 0 0 * * ?"):
     @Scheduled(cron = "0 0 0 * * ?")
     public void checkSubscriptionsForPayment() {
-        // HAAL een lijst op van alle Subscription OBJECTEN die vandaag betaling verschuldigd zijn vanuit de subscriptionRepository:
+
         List<Subscription> subscriptionsDueForPayment = subscriptionRepository.findAllByPaymentDueDate(LocalDate.now());
 
-        //VOOR ELKE Subscription in de opgehaalde lijst: VIND de bijbehorende User, genaamd subscriber, van de Subscription.
         for (Subscription subscription : subscriptionsDueForPayment) {
             User subscriber = subscription.getUser();
 
-            //CONTROLEER of er voor deze Subscription nog geen herinnering is verzonden:
             if (!subscription.isReminderSent()) {
-                //ALS er geen herinnering is verzonden:
-               // - STUUR een betalingsherinnering e-mail naar de subscriber via emailService.
-                //  - ZET isReminderSent van Subscription op true.
-                //- SLA de bijgewerkte Subscription op in de subscriptionRepository.
                 emailService.sendPaymentReminder(subscriber.getEmail(), subscription.getPaymentDueDate());
                 subscription.setReminderSent(true);
                 subscriptionRepository.save(subscription);
             } else {
-                        // - ANDERS (er is al een herinnering verzonden):
-                        //  - ZET de Subscription op inactief (setActive(false)).
-                       //   - STUUR een abonnementsannulering e-mail naar de subscriber via emailService.
-                      //  - SLA de bijgewerkte Subscription op in de subscriptionRepository.
                 subscription.setActive(false);
                 emailService.sendSubscriptionCancelled(subscriber.getEmail());
                 subscriptionRepository.save(subscription);
@@ -182,35 +146,39 @@ public class SubscriptionService {
         }
     }
 
+    @Scheduled(cron = "0 0 0 1 * ?")
+    public void resetMonthlyContentLimit() {
+        List<Subscription> allSubscriptions = subscriptionRepository.findAll();
+        for (Subscription subscription : allSubscriptions) {
+            Category category = subscription.getCategory();
+            subscription.setRemainingContent(category.getAvailableContent());
+            subscriptionRepository.save(subscription);
+        }
+    }
 
-    // Begin een transactie (@Transactional: alle databasebewerkingen binnen de functie maken deel uit van een enkele transactie. Als er ergens een fout optreedt, worden alle databasebewerkingen teruggedraaid.)
     @Transactional
     public SubscriptionResponseDto shareSubscription(ShareSubscriptionRequestDto request) {
 
-        // Zoek de sharer op basis van het e-mailadres uit het verzoek.
         User sharer = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new CustomException("Sharer not found."));
-        // Zoek de ontvanger op basis van het e-mailadres uit het verzoek.
+
         User recipient = userRepository.findByEmail(request.getCustomer())
                 .orElseThrow(() -> new CustomException("Receiver not found."));
-        // Zoek de categorie op basis van de naam van de ingeschreven categorie uit het verzoek.
+
         Category category = categoryRepository.findByName(request.getSubscribedCategory())
                 .orElseThrow(() -> new CustomException("Categorie not found."));
-        // Zoek het abonnement van de sharer voor de gegeven categorie.
+
         Subscription sharerSubscription = subscriptionRepository.findByUserAndCategory(sharer, category)
                 .orElseThrow(() -> new CustomException("Subscription not found for sharer."));
 
-        // Als het abonnement van de sharer niet bestaat, retourneer een response.
         if (sharerSubscription == null) {
             return new SubscriptionResponseDto("Login failed", "No subscription for this category.");
         }
 
-        // Halveer het overgebleven content van de sharer's abonnement.
         sharerSubscription.setRemainingContent(sharerSubscription.getRemainingContent() / 2);
-        //Sla de gewijzigde sharer's abonnement op in de database
+
         subscriptionRepository.save(sharerSubscription);
 
-        // Maak een nieuw abonnement voor de ontvanger.
         Subscription recipientSubscription = new Subscription();
         recipientSubscription.setUser(recipient);
         recipientSubscription.setCategory(category);
@@ -269,5 +237,4 @@ public class SubscriptionService {
         }
         return dto;
     }
-
 }

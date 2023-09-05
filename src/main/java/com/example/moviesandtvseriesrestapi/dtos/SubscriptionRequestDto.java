@@ -3,7 +3,9 @@ package com.example.moviesandtvseriesrestapi.dtos;
 public class SubscriptionRequestDto {
 
     private String email;
+
     private Long availableCategory;
+
     private String categoryName;
 
     public SubscriptionRequestDto() {}

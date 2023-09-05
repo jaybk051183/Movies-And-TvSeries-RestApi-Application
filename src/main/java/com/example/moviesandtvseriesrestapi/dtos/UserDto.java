@@ -7,10 +7,15 @@ import java.util.Set;
 public class UserDto {
 
     public String username;
+
     public String password;
-    public Boolean enabled= Boolean.TRUE;;
+
+    public Boolean enabled= Boolean.TRUE;
+
     public String apikey;
+
     public String email;
+
     public Set<Authority> authorities;
 
     public String getUsername() {
