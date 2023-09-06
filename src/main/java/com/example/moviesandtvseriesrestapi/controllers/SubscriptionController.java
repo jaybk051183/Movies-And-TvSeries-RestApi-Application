@@ -51,6 +51,22 @@ public class SubscriptionController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/subscribe")
+    public ResponseEntity<SubscriptionResponseDto> subscribeToCategory(@RequestBody SubscriptionRequestDto request) {
+        try {
+            Subscription subscription = subscriptionService.subscribeToCategory(request.getEmail(), request.getAvailableCategory());
+
+            SubscriptionResponseDto responseDto = new SubscriptionResponseDto("Login successful.", "Successfully subscribed to " + subscription.getCategory().getName());
+            responseDto.setStartDate(subscription.getStartDate());
+            responseDto.setPaymentDueDate(subscription.getPaymentDueDate());
+
+            return ResponseEntity.ok(responseDto);
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new SubscriptionResponseDto("Login failed.", e.getMessage()));
+        }
+    }
+
     @GetMapping
     public ResponseEntity<?> getCategoriesForUser(@RequestParam String username) {
 

@@ -13,6 +13,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+//De klasse SpringSecurityConfig definieert de beveiligingsconfiguratie:
+// authenticationManager bepaalt hoe gebruikers geauthenticeerd worden: welke service gebruikt wordt om gebruikers te laden en welke encoder wordt gebruikt voor wachtwoorden.
+// In de methode filter, worden de beveiligingsregels voor verschillende endpoints gedefinieerd: Sommige paden zijn open voor iedereen, sommige vereisen dat de gebruiker de rol 'ADMIN' of 'USER' heeft, en sommige vereisen gewoon dat de gebruiker is geauthenticeerd.
+// CSRF-bescherming en HTTP Basic authenticatie zijn uitgeschakeld.
+// CORS is ingeschakeld.
+// De applicatie is ingesteld om stateless sessies te gebruiken, wat betekent dat het geen sessie-informatie opslaat tussen verzoeken. Dit is typisch voor JWT-gebaseerde authenticatie.
+// Het jwtRequestFilter wordt toegevoegd aan de filterketen. Dit filter controleert elk binnenkomend verzoek op de aanwezigheid van een geldige JWT.
+
 @Configuration
 @EnableWebSecurity
 public class SpringSecurityConfig {

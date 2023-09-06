@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+//Deze klasse biedt functionaliteit om JWT's te genereren, te valideren en informatie uit tokens te extraheren. Het maakt gebruik van de io.jsonwebtoken bibliotheek om deze taken uit te voeren.
+
 @Service
 public class JwtUtil {
 

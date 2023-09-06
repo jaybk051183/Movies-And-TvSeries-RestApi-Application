@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+//User story 1: 1. Customer can log in
+
 @Entity
 @Table(name = "users")
 public class User {

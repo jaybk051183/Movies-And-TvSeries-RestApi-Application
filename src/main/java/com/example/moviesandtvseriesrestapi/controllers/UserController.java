@@ -11,6 +11,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
+//User story 1: 1. Customer can log in
+
 @CrossOrigin
 @RestController
 @RequestMapping(value = "/users")

@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+//User story 1: 1. Customer can log in
+
 @Service
 public class UserService {
 

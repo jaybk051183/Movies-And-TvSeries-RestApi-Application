@@ -2,12 +2,9 @@ package com.example.moviesandtvseriesrestapi.controllers;
 
 import com.example.moviesandtvseriesrestapi.dtos.AvailableCategoriesResponseDto;
 import com.example.moviesandtvseriesrestapi.dtos.ContentViewRequestDto;
-import com.example.moviesandtvseriesrestapi.dtos.SubscriptionRequestDto;
-import com.example.moviesandtvseriesrestapi.dtos.SubscriptionResponseDto;
 import com.example.moviesandtvseriesrestapi.exceptions.CategoryNotFoundException;
 import com.example.moviesandtvseriesrestapi.exceptions.UserNotFoundException;
 import com.example.moviesandtvseriesrestapi.models.Category;
-import com.example.moviesandtvseriesrestapi.models.Subscription;
 import com.example.moviesandtvseriesrestapi.models.User;
 import com.example.moviesandtvseriesrestapi.services.CategoryService;
 import com.example.moviesandtvseriesrestapi.services.SubscriptionService;
@@ -41,22 +38,6 @@ public class CategoryController {
         response.setSubscribedCategories(subscriptionService.findByUser(user));
 
         return response;
-    }
-
-    @PostMapping("/subscribe")
-    public ResponseEntity<SubscriptionResponseDto> subscribeToCategory(@RequestBody SubscriptionRequestDto request) {
-        try {
-            Subscription subscription = subscriptionService.subscribeToCategory(request.getEmail(), request.getAvailableCategory());
-
-            SubscriptionResponseDto responseDto = new SubscriptionResponseDto("Login successful.", "Successfully subscribed to " + subscription.getCategory().getName());
-            responseDto.setStartDate(subscription.getStartDate());
-            responseDto.setPaymentDueDate(subscription.getPaymentDueDate());
-
-            return ResponseEntity.ok(responseDto);
-
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new SubscriptionResponseDto("Login failed.", e.getMessage()));
-        }
     }
 
     @PostMapping("/view")

@@ -15,6 +15,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+// De JwtRequestFilter inspecteert elke verzoek op een JWT in de "Authorization" header: Als zo'n token aanwezig is, wordt de gebruikersnaam uit de token gehaald.
+// Het filter controleert vervolgens of de gebruiker al is geauthenticeerd. Zo niet, dan wordt de gebruiker opgehaald met de loadUserByUsername methode.
+// De token wordt gevalideerd en, indien geldig, wordt de gebruiker geauthenticeerd en wordt deze authenticatie in de beveiligingscontext van Spring gezet.
+// Tenslotte laat het filter het verzoek doorgaan in de filterketen.
+
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
